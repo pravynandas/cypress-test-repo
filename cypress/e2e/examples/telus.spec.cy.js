@@ -1,3 +1,4 @@
+let url = "https://www.telus.com/"
 let query = "internet";
 let searchIndex = 2; //3rd search entry
 let pageIndex = 1;
@@ -12,86 +13,77 @@ let title;
 */
 const normalizeText = (s) => s.replace(/\s/g, '').toLowerCase()
 
+// Test Scenario
 context('Telus.Com Search', () => {
+
+  // Before running any scenario below, make sure the view port is properly set and the url is loaded
   before(() => {
     cy.viewport(1400, 1000)
-    cy.visit('https://www.telus.com/', { failOnStatusCode: false })
+    cy.visit(url, { failOnStatusCode: false })
   })
 
+  // Test Case: Search the telus portal and validate results
   it('Search "Internet" and follow links', () => {
 
     // Click the search button
     cy.get('#search-button').click()
 
-    // Type the query and enter
+    // Type the query in the search input field
     cy.get('[placeholder="Search TELUS.com"]').type(`${query}`)
 
-
+    // From the listed results, click on the desired item
     cy.contains('Top Results').parent().within(() => {
       cy.root().get('ul li', { force: true }).eq(searchIndex).within(() => {
         cy.root().get('a').click()
       })
-    }).then(() => {
+    })
+    
+    // Upon successful completion of the click event and page is navigated to results
+    .then(() => {
 
-
-      // cy.get('[aria-label="search and cart"] div div div div ul li').eq(searchIndex).click()
-
-
-      // cy.get('[placeholder="Search"]').clear().type(query)
-      // .then(($input) => { 
-      //   searchTerm = $input.text() 
-      //   console.log('searchTerm', searchTerm)
-      //   expect(searchTerm.includes('internet')).to.be.true 
-      // })
-
-      // cy.get('#app div div div div ul li').eq(searchIndex).click()
-
+      // Extract the current value of the search input field and stored in "searchTerm" variable
       cy.get('[placeholder="Search"]')
-        // //   // .click()
-        // //   // cy.get('#app div div div div ul li').eq(1)
-        // //   .invoke('text')
-        //   // .invoke('val')
-        //   // .then(($val)=>{
-        //   //     console.log('value =============================>' + $val)
-        //   //     searchTerm = $val;
-        //   // })
-        //   .first()
-        // .should('have.value', 'Internet not working')
         .invoke('val')
-        .then(($div) => {
-          //     // we can massage text before comparing
-          cy.log('div is', $div)
-          searchTerm = $div
+        .then(($val) => {
+          searchTerm = $val
           cy.log('searchTerm', searchTerm)
-          // expect(searchTerm, 'Search term').to.equal('Internet not working')
-        }).then(() => {
+        })
+        
+        // Wait until the search operation is completed and variable value is properly assigned.
+        .then(() => {
 
-
+          // Verify the heading matches with the search term displayed in the text field.
           cy.contains('Search results for ')
             .invoke('text')
-            // .should('match', /Search results for/i)
             .should('eq', `Search results for “${searchTerm}”`)
 
-          // cy.wait()
-
+          // Location Articles section and verify it's content
           cy.contains('Articles')
             .invoke('text')
             .should('eq', 'Articles')
 
+          // From Articles heading, locate all the results displayed below it; and within them
           cy.contains('Articles').parent().siblings('div').within(() => {
-
-            // cy.root.get('div').eq(2).get('div div div').eq(2).get('ul li').eq('1').click()
+            
+            // Identify the article which user want to click; and within the article
             cy.root().get('ul li').eq(pageIndex).within(() => {
+
+              // Identify the h2 heading and capture it to "title" variable; Normalize for consistent results
               cy.root().get('h2').invoke('text').then(($title) => {
                 title = normalizeText($title)
                 cy.log('Clicking the page with title:', title)
               })
             })
 
+            // Follow the link in selected article and click it
             cy.root().get('ul li').eq(pageIndex).click()
 
-          }).then(() => {
+          })
+          
+          // Upon the article verfication and click events are completed and page is reloaded; 
+          .then(() => {
 
+            // Verify the text disaplayed on the new page 'breadcrumb' matches with the value captured in "title"
             cy.get('nav[aria-label="Breadcrumb"] ol li:last div').invoke('text').then((_title) => {
               expect(normalizeText(_title), 'Title of the page').to.equal(title)
             })
