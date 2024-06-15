@@ -2,6 +2,7 @@ let url = "https://www.telus.com/"
 let query = "internet";
 let searchIndex = 2; //3rd search entry
 let pageIndex = 1;
+let minArtcles = 5;
 
 let searchTerm;
 let title;
@@ -65,6 +66,9 @@ context('Telus.Com Search', () => {
           // From Articles heading, locate all the results displayed below it; and within them
           cy.contains('Articles').parent().siblings('div').within(() => {
             
+            // Assert the least expected articles are displayed on the page
+            cy.root().get('ul li').should('have.length.at.least', minArtcles);
+
             // Identify the article which user want to click; and within the article
             cy.root().get('ul li').eq(pageIndex).within(() => {
 
